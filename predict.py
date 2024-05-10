@@ -19,7 +19,7 @@ file_utils.download_grounding_dino_weights(
 
 class ModelOutput(BaseModel):
     detections: List
-    result_image: Optional[Path]
+    # result_image: Optional[Path]
 
 
 class Predictor(BasePredictor):
@@ -99,5 +99,5 @@ class Predictor(BasePredictor):
 
         return ModelOutput(
             detections=detections,
-            result_image=Path(result_image_path) if show_visualisation else None,
+            # result_image=Path(result_image_path) if show_visualisation else None,
         )
