@@ -5,7 +5,23 @@ import torch
 from cv2 import imwrite as cv2_imwrite
 import file_utils
 from torchvision.ops import box_convert
-from groundingdino.util.inference import load_model, load_image, predict, annotate
+from groundingdino.util.inference import load_model, predict, annotate
+# from groundingdino.util.inference import load_model, load_image, predict, annotate
+
+import requests
+from PIL import Image
+from io import BytesIO
+import numpy as np
+
+def load_image(image_path):
+    if image_path.startswith('http'):
+        # If the image path is a URL, download the image
+        response = requests.get(image_path)
+        image = Image.open(BytesIO(response.content)).convert("RGB")
+    else:
+        # If the image path is a local file, just open it
+        image = Image.open(image_path).convert("RGB")
+    return image_path, image
 
 
 WEIGHTS_CACHE_DIR = "/src/weights"
@@ -56,6 +72,8 @@ class Predictor(BasePredictor):
         ),
     ) -> ModelOutput:
         image_source, image = load_image(image)
+        
+        image = np.array(image)
 
         boxes, logits, phrases = predict(
             model=self.model,
@@ -67,7 +85,7 @@ class Predictor(BasePredictor):
         )
 
         # Convert boxes from center, width, height to top left, bottom right
-        height, width, _ = image_source.shape
+        height, width, _ = image.shape
         boxes_original_size = boxes * torch.Tensor([width, height, width, height])
         xyxy = (
             box_convert(boxes=boxes_original_size, in_fmt="cxcywh", out_fmt="xyxy")
